@@ -3,14 +3,14 @@ package com.soulware.youme.core.secret.media.image;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
-import com.morln.app.utils.XLog;
-import com.morln.app.utils.XStringUtil;
 import com.soulware.youme.core.secret.media.image.jni.ImageHandlerJNI;
 import com.soulware.youme.core.secret.media.image.model.SecretImage;
 import com.soulware.youme.core.secret.message.MessageHider;
 import com.soulware.youme.core.secret.message.MultiChannelParityMessageHider;
 import com.soulware.youme.core.secret.message.type.EncodingVersion;
 import com.soulware.youme.core.secret.util.DataUtils;
+import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XStringUtil;
 
 import java.io.*;
 
@@ -138,12 +138,6 @@ public class ImageHandlerAndroidImpl implements ImageHandler {
             return null;
 
         return mImageHandlerJNI.getPixelsFromImage(sImage.getSrcPath());
-
-//        int w = sImage.getWidth();
-//        int h = sImage.getHeight();
-//        int[] pixels = new int[w * h];
-//        sImage.getSrcImage().getPixels(pixels, 0, w, 0, 0, w, h);
-//        return pixels;
     }
 
     @Override
@@ -154,22 +148,6 @@ public class ImageHandlerAndroidImpl implements ImageHandler {
             return false;
 
         return mImageHandlerJNI.setPixelsToImage(srcImage.getSrcPath(), desPath, pixels);
-
-//        Bitmap srcBitmap = srcImg.getSrcImage();
-//        Bitmap desBitmap = srcBitmap.copy(srcBitmap.getConfig(), true);
-//        if (desBitmap == null)
-//            return false;
-////        Bitmap desBitmap = Bitmap.createBitmap(srcBitmap.getWidth(), srcBitmap.getHeight(), srcBitmap.getConfig());
-////        desBitmap.setDensity(srcBitmap.getDensity());
-//
-//        XLog.d(TAG, "setImagePixels srcBitmap.hasAlpha=" + srcBitmap.hasAlpha() +
-//                ", desBitmap.hasAlpha=" + desBitmap.hasAlpha());
-//        int w = srcBitmap.getWidth();
-//        int h = srcBitmap.getHeight();
-//        desBitmap.setPixels(pixels, 0, w, 0, 0, w, h);
-//        srcBitmap.recycle();
-//        srcImg.setSrcImage(desBitmap);
-//        return true;
     }
 
     @Override

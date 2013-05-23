@@ -4,12 +4,12 @@ package com.soulware.youme.core.speex.core;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import com.morln.app.utils.XLog;
+import com.xengine.android.utils.XLog;
 
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.RandomAccessFile;
 
 /**
  * Created by 赵之韵.
@@ -20,11 +20,10 @@ import java.io.InputStream;
 public class SpeexDecoder {
 
     private static final String TAG = "Speex";
-    private static final int SAMPLE_RATE_IN_HZ = 8000;
     private static Speex speex;
 
     private boolean isDecoding = false;
-
+    private AudioTrack audioTrack;
 
     static {
         speex = new Speex();
@@ -35,26 +34,12 @@ public class SpeexDecoder {
         isDecoding = false;
     }
 
-    public void startDecode(InputStream input, DecodeProgressListener listener) {
-
-        int minBuf = AudioTrack.getMinBufferSize(
-                SAMPLE_RATE_IN_HZ,
-                AudioFormat.CHANNEL_CONFIGURATION_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-        AudioTrack audioTrack = new AudioTrack(
-                AudioManager.STREAM_MUSIC,
-                SAMPLE_RATE_IN_HZ,
-                AudioFormat.CHANNEL_CONFIGURATION_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, minBuf,
-                AudioTrack.MODE_STREAM);
-
+    public void startDecode(String filePath, SpeexDecoderListener listener) {
         byte[] header = new byte[2048];
         byte[] payload = new byte[65536];
-
         final int OGG_HEADER_SIZE = 27;
         final int OGG_SEG_OFFSET = 26;
         final String OGG_ID = "OggS";
-
         int segments = 0;
         int curSeg = 0;
         int bodyBytes = 0;
@@ -64,16 +49,15 @@ public class SpeexDecoder {
         speex.open();
         isDecoding = true;
         long decodedSize = 0;
-
         try {
             XLog.d(TAG, "Start decode.");
-
+            RandomAccessFile input = new RandomAccessFile(filePath, "r");// 注意，用InputStream会有bug
             int originChecksum;
             int checksum;
-
+            // read until we get to EOF
             while (isDecoding) {
                 // 读取ogg的header
-                input.read(header, 0, OGG_HEADER_SIZE);
+                input.readFully(header, 0, OGG_HEADER_SIZE);
                 originChecksum = readInt(header, 22);
                 readLong(header, 6);
                 header[22] = 0;
@@ -91,10 +75,8 @@ public class SpeexDecoder {
                 /* how many segments are there? */
                 segments = header[OGG_SEG_OFFSET] & 0xFF;
                 //XLog.d(TAG, "Segments count: " + segments);
-                input.read(header, OGG_HEADER_SIZE, segments);
+                input.readFully(header, OGG_HEADER_SIZE, segments);
                 checksum = OggCrc.checksum(checksum, header, OGG_HEADER_SIZE, segments);
-
-                audioTrack.play();
 
                 /* decode each segment, writing output to wav */
                 for (curSeg = 0; curSeg < segments; curSeg++) {
@@ -105,13 +87,16 @@ public class SpeexDecoder {
                         return;
                     }
 
-                    input.read(payload, 0, bodyBytes);
+                    input.readFully(payload, 0, bodyBytes);
                     checksum = OggCrc.checksum(checksum, payload, 0, bodyBytes);
 
                     /* decode the segment */
                     /* if first packet, read the Speex header */
                     if (packetNo == 0) {
-                        readSpeexHeader(payload, 0, bodyBytes, true);
+                        if (readSpeexHeader(payload, 0, bodyBytes))
+                            audioTrack.play();
+                        else
+                            throw new IllegalStateException("read Speex header error!");
                         packetNo++;
                     } else if (packetNo == 1) { // Ogg Comment packet
                         packetNo++;
@@ -121,37 +106,66 @@ public class SpeexDecoder {
                         if ((decSize = speex.decode(payload, decoded, 160)) > 0) {
                             audioTrack.write(decoded, 0, decSize);
                             decodedSize += decSize;
-                            if(listener != null) {
-                                listener.decoded(decodedSize);
-                            }
+
+                            if(listener != null)
+                                listener.decodedProgress(decodedSize);
                         }
                         packetNo++;
                     }
                 }
-
+                XLog.d(TAG, "decode, originCheckSum:" + originChecksum + ", checksum:" + checksum);
                 if (checksum != originChecksum) {
                     throw new IOException("Ogg CheckSums do not match");
                 }
             }
 
             input.close();
-            audioTrack.stop();
+            if(listener != null)
+                listener.decodedFinish(true);
         } catch (EOFException e) {
-            // 好吧，在这里是靠exception来结束的
+            // RandomAccessFile.readFully()会抛出EOFException,靠这个exception来结束的
             XLog.d(TAG, "Reach file end!");
+            if(listener != null)
+                listener.decodedFinish(true);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            XLog.d(TAG, "speex file not found!");
+            if(listener != null)
+                listener.decodedFinish(false);
         } catch (IOException e) {
             e.printStackTrace();
+            if(listener != null)
+                listener.decodedFinish(false);
         } catch (IllegalStateException e) {
             e.printStackTrace();
+            if(listener != null)
+                listener.decodedFinish(false);
         } finally {
             XLog.d(TAG, "Decoded packet count: " + (packetNo - 2));
             XLog.d(TAG, "Stop track.");
             speex.close();
-            audioTrack.release();
+            if (audioTrack != null) {
+                audioTrack.stop();
+                audioTrack.release();
+            }
         }
+    }
 
+    private boolean initializeAndroidAudio(int sampleRate) {
+        int minBufferSize = AudioTrack.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT);
+
+        if (minBufferSize < 0)
+            return false;
+
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                sampleRate, AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                minBufferSize,
+                AudioTrack.MODE_STREAM);
+        return true;
     }
 
     /**
@@ -181,7 +195,7 @@ public class SpeexDecoder {
      * @return
      * @throws Exception
      */
-    private boolean readSpeexHeader(final byte[] packet, final int offset, final int bytes, boolean init) {
+    private boolean readSpeexHeader(final byte[] packet, final int offset, final int bytes) {
         if (bytes != 80) {
             return false;
         }
@@ -193,8 +207,8 @@ public class SpeexDecoder {
         int channels = readInt(packet, offset + 48);
         int framesPerPacket = readInt(packet, offset + 64);
         int frameSize = readInt(packet, offset + 56);
-
-        return true;
+        XLog.d(TAG, " + sampleRate: " + sampleRate + "...........");
+        return initializeAndroidAudio(sampleRate);
     }
 
     protected static int readInt(final byte[] data, final int offset) {
@@ -212,10 +226,6 @@ public class SpeexDecoder {
     protected static int readShort(final byte[] data, final int offset) {
         // no 0xff on the last one to keep the sign
         return (data[offset] & 0xff) | (data[offset + 1] << 8);
-    }
-
-    public interface DecodeProgressListener {
-        void decoded(long size);
     }
 
 }

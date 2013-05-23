@@ -9,13 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
-import com.morln.app.media.graphics.XAndroidScreen;
-import com.morln.app.media.graphics.XScreen;
-import com.morln.app.media.image.XAndroidImageLocalMgr;
-import com.morln.app.media.image.XImageLocalMgr;
-import com.morln.app.system.mobile.XAndroidMobileMgr;
-import com.morln.app.system.mobile.XPhotoListener;
-import com.morln.app.utils.XLog;
 import com.soulware.youme.core.secret.media.image.ImageHandler;
 import com.soulware.youme.core.secret.media.image.ImageHandlerAndroidImpl;
 import com.soulware.youme.core.secret.media.image.model.SecretImage;
@@ -23,7 +16,17 @@ import com.soulware.youme.core.secret.message.type.MessageType;
 import com.soulware.youme.core.secret.util.DataUtils;
 import com.soulware.youme.core.speex.SpeexPlayer;
 import com.soulware.youme.core.speex.SpeexRecorder;
+import com.soulware.youme.core.speex.core.SpeexEncoderListener;
 import com.soulware.youme.mgr.FileMgr;
+import com.xengine.android.media.graphics.XAndroidScreen;
+import com.xengine.android.media.graphics.XScreen;
+import com.xengine.android.media.image.XAndroidImageLocalMgr;
+import com.xengine.android.media.image.XImageLocalMgr;
+import com.xengine.android.system.file.XAndroidFileMgr;
+import com.xengine.android.system.file.XFileMgr;
+import com.xengine.android.system.mobile.XAndroidMobileMgr;
+import com.xengine.android.system.mobile.XPhotoListener;
+import com.xengine.android.utils.XLog;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,15 +61,17 @@ public class Main extends Activity {
         super.onCreate(savedInstanceState);
 
         // 初始化图片管理器
-        XAndroidImageLocalMgr.getInstance().setImgDir("/demoandroid/tmp");
-        File tmpDir = XAndroidImageLocalMgr.getInstance().getImgDir();
+        XFileMgr fileMgr = XAndroidFileMgr.getInstance();
+        fileMgr.setRootName("demoandroid");
+        fileMgr.setDir(XFileMgr.FILE_TYPE_TMP, "tmp", true);
+        fileMgr.setDir(XFileMgr.FILE_TYPE_PHOTO, "photo", true);
+        File tmpDir = fileMgr.getDir(XFileMgr.FILE_TYPE_TMP);
         soundFile = new File(tmpDir, "sound.spx");
         newImageFile = new File(tmpDir, "NEW_IMG_" + System.currentTimeMillis() + ".png");
         decodeSoundFile = new File(tmpDir, "DECODE_SOUND_" + System.currentTimeMillis() + ".spx");
         // 初始化手机功能管理器
         XScreen screen = new XAndroidScreen(this);
         mobileMgr = new XAndroidMobileMgr(this, screen.getScreenWidth(), screen.getScreenHeight());
-        mobileMgr.setPhotoDir(tmpDir);
         // 初始化录音器
         mRecorder = new SpeexRecorder();
         mPlayer = new SpeexPlayer();
@@ -97,16 +102,16 @@ public class Main extends Activity {
             }
         });
 
-        imageView.setOnTouchListener(getWordListener);
+//        imageView.setOnTouchListener(getWordListener);
 //        imageView.setOnTouchListener(hideWordListener);
-//        imageView.setOnTouchListener(hideSoundListener);
+        imageView.setOnTouchListener(hideSoundListener);
     }
 
     private void showSecret(int secretType, byte[] secret) {
         if (secretType == MessageType.SOUND) {
             if (FileMgr.byte2file(secret, decodeSoundFile)) {
                 Toast.makeText(Main.this, "语音信息提取成功！", Toast.LENGTH_SHORT).show();
-                mRecorder.startRecord(decodeSoundFile.getAbsolutePath());
+                mPlayer.startPlay(decodeSoundFile.getAbsolutePath());
             } else {
                 Toast.makeText(Main.this, "语音信息无法还原成文件...", Toast.LENGTH_SHORT).show();
             }
@@ -177,45 +182,57 @@ public class Main extends Activity {
 
     private View.OnTouchListener hideSoundListener = new View.OnTouchListener() {
         @Override
-        public boolean onTouch(View view, MotionEvent event) {if (!addedSound) {
-            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                Toast.makeText(Main.this, "开始录音", Toast.LENGTH_SHORT).show();
-                mRecorder.startRecord(soundFile.getAbsolutePath());
-            } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                Toast.makeText(Main.this, "结束录音", Toast.LENGTH_SHORT).show();
-                mRecorder.stopRecord();
-                // TODO 融入进图片中
-                try {
+        public boolean onTouch(View view, MotionEvent event) {
+            if (!addedSound) {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    Toast.makeText(Main.this, "开始录音", Toast.LENGTH_SHORT).show();
+                    mRecorder.startRecord(soundFile, new SpeexEncoderListener() {
+                        @Override
+                        public void encodeProgress(int encodeSize) {
+                        }
+                        @Override
+                        public void encodeFinish() {
+                            // TODO 融入进图片中
+                            try {
+                                oldPic = mImageHandler.loadImage(imageFile.getAbsolutePath());
+                                byte[] soundByteArray = FileMgr.file2byte(soundFile);
+                                if (mImageHandler.hideSecret(oldPic, "jasontujun", MessageType.SOUND,
+                                        soundByteArray, 0, newImageFile.getAbsolutePath())) {
+                                    XLog.d("Speex", "语音信息融入成功！");
+                                } else {
+                                    XLog.d("Speex", "语音信息融入失败！");
+                                }
+                            } catch (IOException e) {
+                                XLog.d("Speex", "语音信息融入文件出错！");
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                     addedSound = true;
-                    oldPic = mImageHandler.loadImage(imageFile.getAbsolutePath());
-                    byte[] soundByteArray = FileMgr.file2byte(soundFile);
-                    if (mImageHandler.hideSecret(oldPic, "jasontujun", MessageType.SOUND,
-                            soundByteArray, 0, newImageFile.getAbsolutePath())) {
-                        Toast.makeText(Main.this, "语音信息融入成功！", Toast.LENGTH_SHORT).show();
+                    mRecorder.stopRecord();
+                    Toast.makeText(Main.this, "结束录音", Toast.LENGTH_SHORT).show();
+                    // 回放
+//                    mPlayer.startPlay(soundFile.getAbsolutePath());
+                }
+            } else {
+//                mPlayer.startPlay(soundFile.getAbsolutePath());
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    if (newPic == null) {
                         newPic = mImageHandler.loadImage(newImageFile.getAbsolutePath());
                         imageView.setImageBitmap(newPic.getDisplayImage());
                     }
 
-                } catch (IOException e) {
-                    Toast.makeText(Main.this, "语音融入文件出错！", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
+                    mImageHandler.pickSecret(newPic);
+                    byte[] secret = newPic.getSecret();
+                    if (secret == null) {
+                        Toast.makeText(Main.this, "只是一张普通图片", Toast.LENGTH_SHORT).show();
+                    } else {
+                        int messageType = newPic.getSecretType();
+                        showSecret(messageType, secret);
+                    }
                 }
             }
-        } else {
-            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                if (newPic == null)
-                    return true;
-
-                mImageHandler.pickSecret(newPic);
-                byte[] secret = newPic.getSecret();
-                if (secret == null) {
-                    Toast.makeText(Main.this, "只是一张普通图片", Toast.LENGTH_SHORT).show();
-                } else {
-                    int messageType = newPic.getSecretType();
-                    showSecret(messageType, secret);
-                }
-            }
-        }
             return true;
         }
     };
