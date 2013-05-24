@@ -14,9 +14,9 @@ import com.soulware.youme.core.secret.media.image.ImageHandlerAndroidImpl;
 import com.soulware.youme.core.secret.media.image.model.SecretImage;
 import com.soulware.youme.core.secret.message.type.MessageType;
 import com.soulware.youme.core.secret.util.DataUtils;
-import com.soulware.youme.core.speex.SpeexPlayer;
-import com.soulware.youme.core.speex.SpeexRecorder;
-import com.soulware.youme.core.speex.core.SpeexEncoderListener;
+import com.soulware.youme.core.speech.SpeechPlayer;
+import com.soulware.youme.core.speech.SpeechRecorder;
+import com.soulware.youme.core.speech.speex.SpeexEncoderListener;
 import com.soulware.youme.mgr.FileMgr;
 import com.xengine.android.media.graphics.XAndroidScreen;
 import com.xengine.android.media.graphics.XScreen;
@@ -39,8 +39,8 @@ import java.io.IOException;
 public class Main extends Activity {
 
     private XAndroidMobileMgr mobileMgr;
-    private SpeexRecorder mRecorder;
-    private SpeexPlayer mPlayer;
+    private SpeechRecorder mRecorder;
+    private SpeechPlayer mPlayer;
     private ImageHandler mImageHandler;
 
     private Button takePhoto;
@@ -73,8 +73,8 @@ public class Main extends Activity {
         XScreen screen = new XAndroidScreen(this);
         mobileMgr = new XAndroidMobileMgr(this, screen.getScreenWidth(), screen.getScreenHeight());
         // 初始化录音器
-        mRecorder = new SpeexRecorder();
-        mPlayer = new SpeexPlayer();
+        mRecorder = new SpeechRecorder();
+        mPlayer = new SpeechPlayer();
         // 初始化图片处理器
         mImageHandler = ImageHandlerAndroidImpl.getInstance();
 
@@ -186,28 +186,30 @@ public class Main extends Activity {
             if (!addedSound) {
                 if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                     Toast.makeText(Main.this, "开始录音", Toast.LENGTH_SHORT).show();
-                    mRecorder.startRecord(soundFile, new SpeexEncoderListener() {
-                        @Override
-                        public void encodeProgress(int encodeSize) {
-                        }
-                        @Override
-                        public void encodeFinish() {
-                            // TODO 融入进图片中
-                            try {
-                                oldPic = mImageHandler.loadImage(imageFile.getAbsolutePath());
-                                byte[] soundByteArray = FileMgr.file2byte(soundFile);
-                                if (mImageHandler.hideSecret(oldPic, "jasontujun", MessageType.SOUND,
-                                        soundByteArray, 0, newImageFile.getAbsolutePath())) {
-                                    XLog.d("Speex", "语音信息融入成功！");
-                                } else {
-                                    XLog.d("Speex", "语音信息融入失败！");
+                    mRecorder.startRecord(
+                            soundFile.getAbsolutePath(),
+                            new SpeexEncoderListener() {
+                                @Override
+                                public void encodeProgress(int encodeSize) {
                                 }
-                            } catch (IOException e) {
-                                XLog.d("Speex", "语音信息融入文件出错！");
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+                                @Override
+                                public void encodeFinish() {
+                                    // TODO 融入进图片中
+                                    try {
+                                        oldPic = mImageHandler.loadImage(imageFile.getAbsolutePath());
+                                        byte[] soundByteArray = FileMgr.file2byte(soundFile);
+                                        if (mImageHandler.hideSecret(oldPic, "jasontujun", MessageType.SOUND,
+                                                soundByteArray, 0, newImageFile.getAbsolutePath())) {
+                                            XLog.d("Speex", "语音信息融入成功！");
+                                        } else {
+                                            XLog.d("Speex", "语音信息融入失败！");
+                                        }
+                                    } catch (IOException e) {
+                                        XLog.d("Speex", "语音信息融入文件出错！");
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
                 } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                     addedSound = true;
                     mRecorder.stopRecord();

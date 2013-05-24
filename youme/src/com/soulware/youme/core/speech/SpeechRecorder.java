@@ -1,19 +1,18 @@
-package com.soulware.youme.core.speex;
+package com.soulware.youme.core.speech;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import com.soulware.youme.core.speex.core.SpeexEncoder;
-import com.soulware.youme.core.speex.core.SpeexEncoderListener;
-import com.soulware.youme.core.speex.core.SpeexFrame;
+import com.soulware.youme.core.speech.speex.SpeexEncoder;
+import com.soulware.youme.core.speech.speex.SpeexEncoderListener;
+import com.soulware.youme.core.speech.speex.SpeexFrame;
 import com.xengine.android.utils.XLog;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-public class SpeexRecorder {
+public class SpeechRecorder {
 
     private static final String TAG = "Speex";
 
@@ -21,15 +20,12 @@ public class SpeexRecorder {
 
     private RecordThread recordThread;
 
-    public void startRecord(File file, SpeexEncoderListener listener) {
-        if (file == null)
-            return;
-
+    public void startRecord(String filePath, SpeexEncoderListener listener) {
         if (recordThread != null) {
             recordThread.stopRecord();
             recordThread = null;
         }
-        recordThread = new RecordThread(file, listener);
+        recordThread = new RecordThread(filePath, listener);
         recordThread.start();
     }
 
@@ -43,13 +39,13 @@ public class SpeexRecorder {
     private class RecordThread extends Thread {
         private boolean isRecording = false;
 
-        private File recordFile;
+        private String filePath;
 
         SpeexEncoderListener listener;
 
-        private RecordThread(File recordFile, SpeexEncoderListener listener) {
+        private RecordThread(String filePath, SpeexEncoderListener listener) {
             super();
-            this.recordFile = recordFile;
+            this.filePath = filePath;
             this.listener = listener;
         }
 
@@ -64,7 +60,7 @@ public class SpeexRecorder {
 
             OutputStream out;
             try {
-                out = new FileOutputStream(recordFile);
+                out = new FileOutputStream(filePath);
             } catch (FileNotFoundException e) {
                 XLog.d(TAG, "record file error.#$#$#$");
                 e.printStackTrace();

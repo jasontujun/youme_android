@@ -1,15 +1,15 @@
 /**
  *
  */
-package com.soulware.youme.core.speex;
+package com.soulware.youme.core.speech;
 
-import com.soulware.youme.core.speex.core.SpeexDecoder;
+import com.soulware.youme.core.speech.speex.SpeexDecoder;
 
 /**
  * @author Gauss
  *
  */
-public class SpeexPlayer {
+public class SpeechPlayer {
 
     private static final String TAG = "Speex";
 

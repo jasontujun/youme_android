@@ -1,5 +1,5 @@
 
-package com.soulware.youme.core.speex.core;
+package com.soulware.youme.core.speech.speex;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;

@@ -1,4 +1,4 @@
-package com.soulware.youme.core.speex.core;
+package com.soulware.youme.core.speech.speex;
 
 import java.io.DataOutput;
 import java.io.IOException;

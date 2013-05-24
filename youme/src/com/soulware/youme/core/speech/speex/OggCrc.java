@@ -57,7 +57,7 @@
 
  ********************************************************************/
 
-package com.soulware.youme.core.speex.core;
+package com.soulware.youme.core.speech.speex;
 
 /**
  * Calculates the CRC checksum for Ogg packets.
