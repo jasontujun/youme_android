@@ -17,7 +17,6 @@ import com.soulware.youme.core.secret.util.DataUtils;
 import com.soulware.youme.core.speech.SpeechPlayer;
 import com.soulware.youme.core.speech.SpeechRecorder;
 import com.soulware.youme.core.speech.speex.SpeexEncoderListener;
-import com.soulware.youme.mgr.FileMgr;
 import com.xengine.android.media.graphics.XAndroidScreen;
 import com.xengine.android.media.graphics.XScreen;
 import com.xengine.android.media.image.XAndroidImageLocalMgr;
@@ -78,7 +77,7 @@ public class Main extends Activity {
         // 初始化图片处理器
         mImageHandler = ImageHandlerAndroidImpl.getInstance();
 
-        setContentView(R.layout.main);
+        setContentView(R.layout.testmain);
         takePhoto = (Button) findViewById(R.id.take_photo_btn);
         imageView = (ImageView) findViewById(R.id.image_view);
 
@@ -109,7 +108,7 @@ public class Main extends Activity {
 
     private void showSecret(int secretType, byte[] secret) {
         if (secretType == MessageType.SOUND) {
-            if (FileMgr.byte2file(secret, decodeSoundFile)) {
+            if (XAndroidFileMgr.getInstance().byte2file(secret, decodeSoundFile)) {
                 Toast.makeText(Main.this, "语音信息提取成功！", Toast.LENGTH_SHORT).show();
                 mPlayer.startPlay(decodeSoundFile.getAbsolutePath());
             } else {
@@ -197,7 +196,7 @@ public class Main extends Activity {
                                     // TODO 融入进图片中
                                     try {
                                         oldPic = mImageHandler.loadImage(imageFile.getAbsolutePath());
-                                        byte[] soundByteArray = FileMgr.file2byte(soundFile);
+                                        byte[] soundByteArray = XAndroidFileMgr.getInstance().file2byte(soundFile);
                                         if (mImageHandler.hideSecret(oldPic, "jasontujun", MessageType.SOUND,
                                                 soundByteArray, 0, newImageFile.getAbsolutePath())) {
                                             XLog.d("Speex", "语音信息融入成功！");
