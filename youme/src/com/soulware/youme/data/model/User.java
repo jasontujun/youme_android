@@ -14,6 +14,18 @@ public class User {
     private String school;
     private String[] descriptions;
 
+    public User() {
+    }
+
+    public User(String id, String username, String password, String[] descriptions, String school, long birthday) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.descriptions = descriptions;
+        this.school = school;
+        this.birthday = birthday;
+    }
+
     public String getId() {
         return id;
     }

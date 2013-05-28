@@ -140,7 +140,7 @@ public class FMain extends XBaseFrame {
             GlobalStateSource globalStateSource = (GlobalStateSource) DataRepo.
                     getInstance().getSource(SourceName.GLOBAL_STATE);
             if (globalStateSource.isLogin()) {
-                globalStateSource.setCurrentUser("", "");
+                globalStateSource.setCurrentUser("", "", "");
             }
             // 退出前清空整个系统，如：临时文件，管理器等
             SystemMgr.clearSystem();
@@ -155,6 +155,7 @@ public class FMain extends XBaseFrame {
 
     public static final int BACK = 1;
     public static final int GO_TO_TIMELINE = 2;
+    public static final int GO_TO_ADD_STORY = 3;
     private Handler mainFrameHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -168,6 +169,10 @@ public class FMain extends XBaseFrame {
                         mTimelineLayer = new LTimeline(FMain.this);
                     }
                     addLayer(mTimelineLayer);
+                    break;
+                // 进入添加故事界面
+                case GO_TO_ADD_STORY:
+                    addLayer(new LAddStory(FMain.this));
                     break;
                 default:
                     break;

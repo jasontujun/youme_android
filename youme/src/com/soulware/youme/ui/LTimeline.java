@@ -1,6 +1,7 @@
 package com.soulware.youme.ui;
 
 import android.os.Handler;
+import android.view.View;
 import android.widget.Button;
 import com.soulware.youme.R;
 import com.soulware.youme.ui.controls.viewflow.TitleFlowIndicator;
@@ -17,14 +18,14 @@ import com.xengine.android.system.ui.XUIFrame;
  */
 public class LTimeline extends XBaseLayer{
 
-    private Button mTopBarBtn;
+    private Button mTopBtn;
     private ViewFlow mViewFlow;
 
     public LTimeline(XUIFrame uiFrame) {
         super(uiFrame);
 
         setContentView(R.layout.timeline_frame);
-        mTopBarBtn = (Button) findViewById(R.id.top_btn);
+        mTopBtn = (Button) findViewById(R.id.top_btn);
         mViewFlow = (ViewFlow) findViewById(R.id.story_frame);
         ATimeline phaseAdapter = new ATimeline(getContext());
         mViewFlow.setAdapter(phaseAdapter);
@@ -32,6 +33,12 @@ public class LTimeline extends XBaseLayer{
         indicator.setTitleProvider(phaseAdapter);
         mViewFlow.setFlowIndicator(indicator);
 
+        mTopBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getFrameHandler().sendEmptyMessage(FMain.GO_TO_ADD_STORY);
+            }
+        });
     }
 
     @Override

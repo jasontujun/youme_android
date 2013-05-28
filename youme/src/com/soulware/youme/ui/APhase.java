@@ -2,6 +2,8 @@ package com.soulware.youme.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -13,9 +15,12 @@ import com.soulware.youme.data.cache.SourceName;
 import com.soulware.youme.data.cache.StorySource;
 import com.soulware.youme.data.model.Story;
 import com.soulware.youme.utils.img.ImageLoader;
+import com.xengine.android.data.cache.XDataChangeListener;
 import com.xengine.android.media.image.XImageLocalMgr;
 import com.xengine.android.utils.XStringUtil;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,7 +30,7 @@ import java.util.List;
  * Date: 13-5-26
  * Time: 下午2:23
  */
-public class APhase extends BaseAdapter {
+public class APhase extends BaseAdapter implements XDataChangeListener<Story> {
 
     private Context context;
 
@@ -33,16 +38,19 @@ public class APhase extends BaseAdapter {
     private long mEndTime;
     private List<Story> mStoryList;
 
-    public APhase(Context context, long startTime, long endTime) {
+    public APhase(Context context) {
         this.context = context;
-        this.mStartTime = startTime;
-        this.mEndTime = endTime;
-        refresh();
+        StorySource storySource = (StorySource) DataRepo.getInstance().getSource(SourceName.STORY);
+        storySource.registerDataChangeListener(this);
+        mStoryList = new ArrayList<Story>();
     }
 
-    public void refresh() {
+    public void refresh(long startTime, long endTime) {
+        this.mStartTime = startTime;
+        this.mEndTime = endTime;
         StorySource storySource = (StorySource) DataRepo.getInstance().getSource(SourceName.STORY);
         mStoryList = storySource.getByTime(mStartTime, mEndTime);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -81,7 +89,7 @@ public class APhase extends BaseAdapter {
 
         Story story = (Story) getItem(position);
         viewHolder.titleView.setText(story.getName());
-        viewHolder.timeView.setText(XStringUtil.date2str(story.getStoryTime()));
+        viewHolder.timeView.setText(XStringUtil.date2calendarStr(new Date(story.getStoryTime())));
         // TODO 封面
         if (XStringUtil.isNullOrEmpty(story.getCoverImageId())) {
             viewHolder.coverView.setImageResource(android.R.color.transparent);
@@ -103,4 +111,43 @@ public class APhase extends BaseAdapter {
 
         return convertView;
     }
+
+    @Override
+    public void onChange() {
+        postNotifyDataChange();
+    }
+
+    @Override
+    public void onAdd(Story story) {
+        postNotifyDataChange();
+    }
+
+    @Override
+    public void onAddAll(List<Story> stories) {
+        postNotifyDataChange();
+    }
+
+    @Override
+    public void onDelete(Story story) {
+        postNotifyDataChange();
+    }
+
+    @Override
+    public void onDeleteAll(List<Story> stories) {
+        postNotifyDataChange();
+    }
+
+
+    private void postNotifyDataChange() {
+        changeHandler.sendEmptyMessage(0);
+    }
+
+    private Handler changeHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if(msg.what == 0) {
+                refresh(mStartTime, mEndTime);
+            }
+        }
+    };
 }

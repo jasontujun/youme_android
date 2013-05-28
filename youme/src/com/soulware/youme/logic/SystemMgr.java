@@ -79,6 +79,7 @@ public class SystemMgr {
         repo.registerDataSource(new ImageSource());
         repo.registerDataSource(new StorySource());
         repo.registerDataSource(new PhaseSource());
+        repo.registerDataSource(new UserSource());
         // ...
     }
 

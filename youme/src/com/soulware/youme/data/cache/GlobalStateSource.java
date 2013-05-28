@@ -119,10 +119,11 @@ public class GlobalStateSource implements XDataSource {
      * @param userName 用户名
      * @param password 密码
      */
-    public void setCurrentUser(String userName, String password) {
+    public void setCurrentUser(String userName, String password, String description) {
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(USERNAME, userName);
         editor.putString(PASSWORD, password);
+        editor.putString(DESCRIPTION, description);
         editor.commit();
     }
 
@@ -131,10 +132,11 @@ public class GlobalStateSource implements XDataSource {
      * @param userName 用户名
      * @param password 密码
      */
-    public void setLastUser(String userName, String password) {
+    public void setLastUser(String userName, String password, String description) {
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(LAST_USERNAME, userName);
         editor.putString(LAST_PASSWORD, password);
+        editor.putString(LAST_DESCRIPTION, description);
         editor.commit();
     }
 

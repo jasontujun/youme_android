@@ -15,23 +15,22 @@
     <RelativeLayout
         android:id="@+id/timeline_frame"
         android:layout_width="fill_parent"
-        android:layout_height="30dp"
+        android:layout_height="40dp"
         android:layout_below="@+id/top_bar_frame"
         android:background="@drawable/bg_timeline">
         <com.soulware.youme.ui.controls.viewflow.TitleFlowIndicator
             android:id="@+id/timeline_indic"
             android:layout_height="wrap_content"
             android:layout_width="fill_parent"
+            android:layout_marginTop="10dp"
             app:footerLineHeight="2dp"
-            app:customTypeface="fonts/Antic.ttf"
             app:footerTriangleHeight="10dp"
-            app:textColor="#FFFFFFFF"
-            app:selectedColor="#FFFFC445"
-            app:footerColor="#FFFFC445"
+            app:textColor="@color/light_blue"
+            app:selectedColor="@color/dark_blue"
+            app:footerColor="@color/dark_blue"
             app:titlePadding="10dp"
-            app:textSize="12sp"
-            app:selectedSize="12dp"
-            android:layout_marginTop="10dip"
+            app:textSize="14sp"
+            app:selectedSize="20sp"
             app:clipPadding="5dp"/>
     </RelativeLayout>
     <!--阴影-->
@@ -45,7 +44,6 @@
         android:id="@+id/top_bar_frame"
         android:layout_width="fill_parent"
         android:layout_height="50dp"
-        android:orientation="vertical"
         android:background="@drawable/bg_bar_blue">
         <ImageView
             android:layout_width="wrap_content"
@@ -55,23 +53,19 @@
             android:adjustViewBounds="true"
             android:scaleType="centerInside"
             android:src="@drawable/logo_simple"/>
+        <!--添加按钮-->
         <ImageView
             android:layout_width="2dp"
             android:layout_height="fill_parent"
-            android:layout_toLeftOf="@+id/top_btn_bar"
+            android:layout_toLeftOf="@+id/top_btn"
             android:layout_centerVertical="true"
             android:background="@drawable/span_blue_bar"/>
-        <RelativeLayout
-            android:id="@+id/top_btn_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
+        <Button
+            android:id="@+id/top_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentRight="true"
-            android:padding="5dp">
-            <Button
-                android:id="@+id/top_btn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/btn_add"/>
-        </RelativeLayout>
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_add"/>
     </RelativeLayout>
 </RelativeLayout>

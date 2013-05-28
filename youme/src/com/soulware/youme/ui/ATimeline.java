@@ -4,12 +4,13 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
+import android.widget.TextView;
 import com.soulware.youme.R;
 import com.soulware.youme.data.cache.DataRepo;
 import com.soulware.youme.data.cache.PhaseSource;
 import com.soulware.youme.data.cache.SourceName;
 import com.soulware.youme.data.model.Phase;
+import com.soulware.youme.ui.controls.XListView;
 import com.soulware.youme.ui.controls.viewflow.TitleProvider;
 
 /**
@@ -46,7 +47,9 @@ public class ATimeline extends BaseAdapter implements TitleProvider {
     }
 
     private class ViewHolder {
-        public ListView storyListView;
+        public XListView storyListView;
+        public View tipFrame;
+        public TextView tipView;
     }
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -54,15 +57,33 @@ public class ATimeline extends BaseAdapter implements TitleProvider {
         if(convertView == null) {
             convertView = View.inflate(context, R.layout.timeline_phase, null);
             viewHolder = new ViewHolder();
-            viewHolder.storyListView = (ListView) convertView.findViewById(R.id.story_list);
+            viewHolder.tipFrame = convertView.findViewById(R.id.tip_view_frame);
+            viewHolder.tipView = (TextView) convertView.findViewById(R.id.tip_view);
+            viewHolder.storyListView = (XListView) convertView.findViewById(R.id.story_list);
+            viewHolder.storyListView.setRefreshable(true);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
         Phase phase = (Phase) getItem(position);
-        APhase storyListAdapter = new APhase(context, phase.getStartTime(), phase.getEndTime());
-        viewHolder.storyListView.setAdapter(storyListAdapter);
+        APhase storyListAdapter;
+        if (viewHolder.storyListView.getAdapter() == null) {
+            storyListAdapter = new APhase(context);
+            viewHolder.storyListView.setAdapter(storyListAdapter);
+        } else {
+            storyListAdapter = (APhase) viewHolder.storyListView.getAdapter();
+        }
+        storyListAdapter.refresh(phase.getStartTime(), phase.getEndTime());
+
+        if (storyListAdapter.getCount() == 0) {
+            viewHolder.storyListView.setVisibility(View.GONE);
+            viewHolder.tipFrame.setVisibility(View.VISIBLE);
+            viewHolder.tipView.setText(phase.getName() + ",");
+        } else {
+            viewHolder.storyListView.setVisibility(View.VISIBLE);
+            viewHolder.tipFrame.setVisibility(View.GONE);
+        }
 
         return convertView;
     }

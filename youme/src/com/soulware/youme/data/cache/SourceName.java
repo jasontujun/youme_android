@@ -22,6 +22,8 @@ public class SourceName {
     public static final String SYSTEM_SETTING = "systemSetting";
 
 
+    public static final String USER = "user";// 客户端测试所需
+
     public static final String PHASE = "phase";
 
     public static final String STORY = "story";

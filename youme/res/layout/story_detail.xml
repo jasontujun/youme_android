@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:background="@drawable/bg_app_gray">
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="@drawable/bg_app_gray">
     <!--阴影-->
     <ImageView
         android:layout_width="fill_parent"
@@ -17,33 +17,84 @@
         android:layout_height="50dp"
         android:orientation="vertical"
         android:background="@drawable/bg_bar_blue">
-        <RelativeLayout
-            android:id="@+id/top_btn_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:padding="5dp">
-            <Button
-                android:id="@+id/top_btn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/btn_back"/>
-        </RelativeLayout>
+        <!--返回按钮-->
+        <Button
+            android:id="@+id/top_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_back"/>
         <ImageView
             android:layout_width="2dp"
             android:layout_height="fill_parent"
-            android:layout_toRightOf="@+id/top_btn_bar"
+            android:layout_toRightOf="@+id/top_btn"
             android:layout_centerVertical="true"
             android:background="@drawable/span_blue_bar"/>
-        <TextView
-            android:id="@+id/top_title"
+        <!--标题-->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/top_btn"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
-            android:text="编辑"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/title_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="我和故事"
+                android:textSize="18sp"
+                android:textColor="@color/white"/>
+            <TextView
+                android:id="@+id/time_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2013.6.16"
+                android:textSize="12sp"
+                android:textColor="@color/white"/>
+        </LinearLayout>
+        <!--按钮栏-->
+        <LinearLayout
+            android:id="@+id/top_btn_frame"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="2dp"
+                android:layout_height="fill_parent"
+                android:background="@drawable/span_blue_bar"/>
+            <!--编辑按钮-->
+            <Button
+                android:id="@+id/edit_btn"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/btn_edit"/>
+            <ImageView
+                android:layout_width="2dp"
+                android:layout_height="fill_parent"
+                android:background="@drawable/span_blue_bar"/>
+            <!--添加按钮-->
+            <Button
+                android:id="@+id/add_btn"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/btn_add"/>
+        </LinearLayout>
+        <!--来自XXX的礼物-->
+        <TextView
+            android:id="@+id/gift_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="6dp"
+            android:text="来自XXX的礼物"
             android:textSize="18sp"
             android:textColor="@color/white"
-            android:layout_toRightOf="@+id/top_btn_bar"
-            android:layout_centerVertical="true"/>
+            android:visibility="gone"/>
     </RelativeLayout>
 
     <!--画卷-->
@@ -51,15 +102,26 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_below="@+id/top_bar_frame"
-        android:layout_margin="10dp"
+        android:layout_margin="6dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
         android:background="@drawable/bg_frame_white">
 
-        <com.soulware.youme.ui.controls.XHorizontalListView
+        <!--<com.soulware.youme.ui.controls.XHorizontalListView-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="fill_parent"-->
+        <!--android:id="@+id/image_list"/>-->
+        <Gallery
+            android:id="@+id/image_list"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/image_list"/>
-        </FrameLayout>
+            android:spacing="6dp"/>
+    </FrameLayout>
+
+    <!--图片详情层-->
+    <FrameLayout
+        android:id="@+id/image_detail_frame"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
 
 </RelativeLayout>

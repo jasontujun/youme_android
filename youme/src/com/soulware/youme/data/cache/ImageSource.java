@@ -2,7 +2,7 @@ package com.soulware.youme.data.cache;
 
 import com.soulware.youme.data.db.ImageTable;
 import com.soulware.youme.data.model.Image;
-import com.xengine.android.data.cache.XBaseAdapterDBDataSource;
+import com.xengine.android.data.cache.XBaseAdapterIdDBDataSource;
 import com.xengine.android.data.db.XDBTable;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.List;
  * Date: 13-5-27
  * Time: 下午3:27
  */
-public class ImageSource extends XBaseAdapterDBDataSource<Image> {
+public class ImageSource extends XBaseAdapterIdDBDataSource<Image> {
     private XDBTable<Image> mTable = new ImageTable();
 
     @Override
@@ -35,5 +35,10 @@ public class ImageSource extends XBaseAdapterDBDataSource<Image> {
                 result.add(image);
         }
         return result;
+    }
+
+    @Override
+    public String getId(Image image) {
+        return image.getId();
     }
 }
