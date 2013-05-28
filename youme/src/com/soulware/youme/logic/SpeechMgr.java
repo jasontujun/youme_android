@@ -10,6 +10,7 @@ import com.soulware.youme.data.model.Image;
 import com.xengine.android.system.file.XAndroidFileMgr;
 import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XStringUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +71,7 @@ public class SpeechMgr {
                                 image.setSecretSize(10);
                                 image.setLocalImagePath(newImagePath);
                                 image.setLocalSpeechPath(speechFile.getAbsolutePath());
+                                mImageSource.notifyDataChanged();// 通知界面更新
                             }
                         } catch (IOException e) {
                             XLog.d("Speex", "语音信息融入文件出错！");
@@ -79,8 +81,12 @@ public class SpeechMgr {
                 });
     }
 
-    public void stopRecord() {
+    public void stopRecord(String imageId) {
+        final Image image = mImageSource.getById(imageId);
+        if (image == null)
+            return;
 
+        mRecorder.stopRecord();
     }
 
     public boolean playSpeech(String imageId) {
@@ -88,6 +94,23 @@ public class SpeechMgr {
         if (image == null)
             return false;
 
+        if (!XStringUtil.isNullOrEmpty(image.getLocalSpeechPath())) {
+            mPlayer.startPlay(image.getLocalSpeechPath());
+            return true;
+        }
+
+        byte[] secret = SecretMgr.getInstance().pickSecret(image.getLocalImagePath());
+        if (secret == null) {
+            return false;
+        } else {
+            File tmpDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+            File decodeSoundFile = new File(tmpDir, "DECODE_SOUND_" + System.currentTimeMillis() + ".spx");
+            if (XAndroidFileMgr.getInstance().byte2file(secret, decodeSoundFile)) {
+                mPlayer.startPlay(decodeSoundFile.getAbsolutePath());
+            } else {
+                return false;
+            }
+        }
         return true;
     }
 }

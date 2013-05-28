@@ -32,4 +32,10 @@ public class SecretMgr {
         return mImageHandler.hideSecret(oldPic, "jasontujun", MessageType.SOUND,
                 message, 0, desPath);
     }
+
+    public byte[] pickSecret(String srcPath) {
+        SecretImage newPic = mImageHandler.loadImage(srcPath);
+        mImageHandler.pickSecret(newPic);
+        return newPic.getSecret();
+    }
 }
